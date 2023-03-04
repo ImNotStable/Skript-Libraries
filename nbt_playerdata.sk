@@ -1,0 +1,107 @@
+options:
+	playerDataPath: plugins/Skript/playerData/
+	debug: true
+
+on join:
+	createPlayerData(player)
+	loadPlayerData(player)
+	initPlayerData(player, false)
+
+every 30 seconds:
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &aSaved all player data" to console
+	loop all players:
+		savePlayerData(loop-player)
+
+on quit:
+	savePlayerData(player)
+	unloadPlayerData(player)
+
+function createPlayerData(player: player):
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &aCreated player data for %{_player}%" to console
+	set {_playerData} to nbt compound from file "{@playerDataPath}%{_player}'s uuid%.dat"
+	save nbt file of {_playerData}
+
+function savePlayerData(player: player):
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &aSaved player data for %{_player}%" to console
+	set {_playerData} to nbt compound from file "{@playerDataPath}%{_player}'s uuid%.dat"
+	add {playerData::%{_player}'s uuid%} to {_playerData}
+	save nbt file of {_playerData}
+
+function wipePlayerData(player: player):
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &aWiped player data of %{_player}%" to console
+	loop nbt tags of {playerData::%{_player}'s uuid%}:
+		delete tag loop-value of {playerData::%{_player}'s uuid%}
+	savePlayerData({_player})
+
+function loadPlayerData(player: player):
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &aLoaded player data of %{_player}%" to console
+	set {playerData::%{_player}'s uuid%} to nbt compound from file "{@playerDataPath}%{_player}'s uuid%.dat"
+
+function unloadPlayerData(player: player):
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &aUnload player data for %{_player}%" to console
+	delete {playerData::%{_player}'s uuid%}
+
+function setPlayerData(player: player, tag: string, values: objects):
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &aSet tag '%{_tag}%' from '%{_player}%' to '%{_values::*}%'" to console
+	set tag {_tag} of {playerData::%{_player}'s uuid%} to {_values::*}
+
+function addPlayerData(player: player, tag: string, value: object):
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &aAdded '%{_value}%' to list tag '%{_tag}%' for '%{_player}%'" to console
+	set {_list::*} to tag {_tag} of {playerData::%{_player}'s uuid%}
+	add {_value} to {_list::*}
+	set tag {_tag} of {playerData::%{_player}'s uuid%} to {_list::*}
+
+function removePlayerData(player: player, tag: string, value: object):
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &aRemoved '%{_value}%' from list tag '%{_tag}%' for '%{_player}%'" to console
+	set {_list::*} to tag {_tag} of {playerData::%{_player}'s uuid%}
+	remove {_value} from {_list::*}
+	set tag {_tag} of {playerData::%{_player}'s uuid%} to {_list::*}
+
+function deletePlayerData(player: player, tag: string):
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &aDeleted tag '%{_tag}%' from '%{_player}%'" to console
+	delete tag {_tag} of {playerData::%{_player}'s uuid%}
+
+function getPlayerData(player: player, tag: string) :: object:
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &atag '%{_tag}%' from '%{_player}%' is '%tag {_tag} of {playerData::%{_player}'s uuid%}%'" to console
+	return tag {_tag} of {playerData::%{_player}'s uuid%}
+
+function initPlayerData(player: player, overwrite: boolean):
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &aInitializing player data for %{_player}%" to console
+	loop {playerData.defaultValues::*}:
+		if {_overwrite} is false:
+			getPlayerData({_player}, loop-index) is set
+			continue loop
+		setPlayerData({_player}, loop-index, loop-value)
+
+function createDefaultValue(tag: string, value: object):
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &aSet default value with tag '%{_tag}%' to '%{_value}%'" to console
+	set {playerData.defaultValues::%{_tag}%} to {_value}
+
+function deleteDefaultValue(tag: string):
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &aDeleted default value with tag '%{_tag}%'" to console
+	delete {playerData.defaultValues::%{_tag}%}
+
+function getAllTags(playerData: nbt compound) :: strings:
+	if amount of nbt tags of {_playerData} > 0:
+		loop nbt tags of {_playerData}:
+			set {_compound} to tag loop-value of {_playerData}
+			if amount of nbt tags of {_compound} > 0:
+				loop getAllTags({_compound}):
+					add "%loop-value-1%;%loop-value-2%" to {_tags::*}
+			else:
+				add loop-value to {_tags::*}
+		return {_tags::*}

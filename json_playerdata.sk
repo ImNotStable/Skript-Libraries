@@ -1,0 +1,66 @@
+options:
+	playerDataPath: plugins/Skript/playerData/
+	debug: false
+
+on join:
+	createPlayerData(player)
+	loadPlayerData(player)
+
+every 30 seconds:
+	loop all players:
+		savePlayerData(loop-player)
+
+on quit:
+	savePlayerData(player)
+	unloadPlayerData(player)
+
+function createPlayerData(player: player):
+	if {@debug} = true:
+		send "&7[&cSk&4Json&7] &acreated player data for %{_player}%" to console
+	async new json file "{@playerDataPath}%{_player}'s uuid%.json"
+
+function loadPlayerData(player: player):
+	if {@debug} = true:
+		send "&7[&cSk&4Json&7] &aloaded player data of %{_player}%" to console
+	link json file "{@playerDataPath}%{_player}'s uuid%.json" as "playerData.%{_player}%"
+
+function savePlayerData(player: player):
+	if {@debug} = true:
+		send "&7[&cSk&4Json&7] &asaved player data for %{_player}%" to console
+	async save cached json "playerData.%{_player}%"
+
+function unloadPlayerData(player: player):
+	if {@debug} = true:
+		send "&7[&cSk&4Json&7] &aunload player data for %{_player}%" to console
+	unlink cached json "playerData.%{_player}%"
+
+function wipePlayerData(player: player):
+	if {@debug} = true:
+		send "&7[&cSk&4Json&7] &awiped player data of %{_player}%" to console
+	map cached json "playerData.%{_player}%" to {_elements::*}
+	loop {_elements::*}:
+		deletePlayerData({_player}, loop-index)
+	savePlayerData({_player})
+
+function setPlayerData(player: player, key: string, value: object):
+	set {_key} to {_key} in lowercase
+	if {@debug} = true:
+		send "&7[&cSk&4Json&7] &aset key '%{_key}%' from '%{_player}%' to '%{_value}%'" to console
+	if cached json "playerData.%{_player}%" has key {_key}:
+		set json value {_key} of cached json "playerData.%{_player}%" to json from {_value}
+	else:
+		append {_value} with key {_key} to cached json "playerData.%{_player}%"
+
+function getPlayerData(player: player, key: string) :: object:
+	set {_key} to {_key} in lowercase
+	set {_value} to value {_key} from cached json "playerData.%{_player}%" #value {_key} of cached json "playerData.%{_player}%"
+	if {@debug} = true:
+		send "&7[&cSk&4Json&7] &atag '%{_key}%' from '%{_player}%' is '%{_value}%'" to console
+	"%{_value}%" != "null"
+	return {_value}
+
+function deletePlayerData(player: player, key: string):
+	set {_key} to {_key} in lowercase
+	if {@debug} = true:
+		send "&7[&cSk&4Json&7] &adeleted tag '%{_key}%' from '%{_player}%'" to console
+	remove json {_key} from cached json "playerData.%{_player}%"

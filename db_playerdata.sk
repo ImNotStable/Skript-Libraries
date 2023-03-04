@@ -1,0 +1,2 @@
+on load:
+	set {playerData.database} to the database "sqlite:database.db"

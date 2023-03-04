@@ -1,0 +1,95 @@
+options:
+	playerDataPath: plugins/Skript/playerData/
+	debug: true
+
+on join:
+	createPlayerData(player)
+	loadPlayerData(player)
+	initPlayerData(player, false)
+
+every 30 seconds:
+	if {@debug} = true:
+		send "&7[&bSk&3NBT&7] &aSaved all player data" to console
+	loop all players:
+		savePlayerData(loop-player)
+
+on quit:
+	savePlayerData(player)
+	unloadPlayerData(player)
+
+effect [sknbt] create [player[ ]]data for %player%:
+	trigger:
+		set {_player} to expression-1
+		if {@debug} = true:
+			send "&7[&bSk&3NBT&7] &7[&cDebug&7] &aCreated player data for %{_player}%" to console
+		set {_playerData} to nbt compound from file "{@playerDataPath}%{_player}'s uuid%.dat"
+		save nbt file of {_playerData}
+
+effect [sknbt] save [player[ ]]data of %player%:
+	trigger:
+		set {_player} to expression-1
+		if {@debug} = true:
+			send "&7[&bSk&3NBT&7] &7[&cDebug&7] &aSaved player data for %{_player}%" to console
+		set {_playerData} to nbt compound from file "{@playerDataPath}%{_player}'s uuid%.dat"
+		add {playerData::%{_player}'s uuid%} to {_playerData}
+		save nbt file of {_playerData}
+		
+
+effect [sknbt] wipe [player [ ]]data of %player%:
+	trigger:
+		set {_player} to expression-1
+		if {@debug} = true:
+			send "&7[&bSk&3NBT&7] &7[&cDebug&7] &aWiped player data of %{_player}%" to console
+		loop nbt tags of {playerData::%{_player}'s uuid%}:
+			delete tag loop-value of {playerData::%{_player}'s uuid%}
+		savePlayerData({_player})
+
+effect [sknbt] load [player [ ]]data of %player%:
+	trigger:
+		set {_player} to expression-1
+		if {@debug} = true:
+			send "&7[&bSk&3NBT&7] &7[&cDebug&7] &aWiped player data of %{_player}%" to console
+		loop nbt tags of {playerData::%{_player}'s uuid%}:
+			delete tag loop-value of {playerData::%{_player}'s uuid%}
+		savePlayerData({_player})
+		
+
+effect [sknbt] unload [player [ ]]data of %player%:
+	trigger:
+		set {_player} to expression-1
+		if {@debug} = true:
+			send "&7[&bSk&3NBT&7] &7[&cDebug&7] &aUnload player data for %{_player}%" to console
+		delete {playerData::%{_player}'s uuid%}
+		
+
+effect [sknbt] set [tag] %string% from [player [ ]]data of %player% to %object%:
+	trigger:
+		set {_value} to expression-1
+		set {_player} to expression-2
+		set {_tag} to expression-3
+		if {@debug} = true:
+			send "&7[&bSk&3NBT&7] &7[&cDebug&7] &aSet tag '%{_tag}%' from '%{_player}%' to '%{_value}%'" to console
+		set tag {_tag} of {playerData::%{_player}'s uuid%} to {_value}
+		
+
+effect [sknbt] :
+	trigger:
+		
+
+effect [sknbt] :
+	trigger:
+		
+
+expression example %integer%:
+	return type: number
+	get:
+		# {_test} always starts at 1 here
+		set {_test} to expression-1
+		add 1 to {_test}
+		# 2 is always returned
+		return {_test}
+
+expression %number% multiplied by %number%:
+    return type: number
+    get:
+        return expression-1 * expression-2
